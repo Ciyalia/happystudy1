@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:studytimer/screens/welcome/welcome_screen.dart';
+import 'package:studytimer/pages/homepage.dart';
 
 class ThankYouPage extends StatelessWidget {
   const ThankYouPage({Key? key}) : super(key: key);
@@ -7,84 +8,88 @@ class ThankYouPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 239, 243, 240),
+      backgroundColor: const Color.fromARGB(255, 239, 243, 240),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GiftImage(),
-
-            SizedBox(height: 5),
-
-            // Thank you message
-            Text(
-              'Thank you for gracing us',
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Image.asset(
+                'assets/images/Emot.png',
+                width: 100,
+                height: 100,
+              ),
+            ),
+            const SizedBox(height: 2),
+            const Text(
+              'Are you sure to logout?',
               style: TextStyle(
-                fontSize: 25,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: Color.fromARGB(255, 62, 78, 47),
               ),
               textAlign: TextAlign.center,
             ),
-
-            Text(
-              'with your presence! ',
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-              textAlign: TextAlign.center,
-            ),
-
-            SizedBox(height: 10),
-            Text(
-              'see you, take care and',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.black,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              'keep shining!',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.black,
-              ),
-              textAlign: TextAlign.center,
+            const SizedBox(height: 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const HomePage()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    minimumSize: const Size(120, 40),
+                    backgroundColor: Colors.grey,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 10),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const WelcomeScreen()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    minimumSize: const Size(120, 40),
+                    backgroundColor: const Color.fromARGB(255, 62, 78, 47),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 10),
+                  ),
+                  child: const Text(
+                    'Yes',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => WelcomeScreen()),
-          );
-        },
-        label: Text(
-          'Logout',
-          style: TextStyle(color: Colors.white),
-        ),
-        icon: Icon(Icons.logout, color: Colors.white),
-        backgroundColor: Color.fromARGB(255, 54, 71, 54),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
-  }
-}
-
-class GiftImage extends StatelessWidget {
-  const GiftImage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/images/cute.gif',
-      width: 200,
-      height: 200,
     );
   }
 }
