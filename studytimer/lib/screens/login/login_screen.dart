@@ -8,10 +8,10 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -93,11 +93,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           Expanded(
                             child: TextField(
                               controller: usernameController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 border: InputBorder.none,
                                 hintText: 'Username',
                               ),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 14), // Mengatur ukuran teks
                             ),
                           ),
@@ -126,11 +126,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           Expanded(
                             child: TextField(
                               controller: emailController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 border: InputBorder.none,
                                 hintText: 'Email',
                               ),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 14), // Mengatur ukuran teks
                             ),
                           ),
@@ -160,11 +160,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: TextField(
                               controller: passwordController,
                               obscureText: _obscurePassword,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 border: InputBorder.none,
                                 hintText: 'Password',
                               ),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 14), // Mengatur ukuran teks
                             ),
                           ),
@@ -205,11 +205,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: TextField(
                               controller: confirmPasswordController,
                               obscureText: _obscureConfirmPassword,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 border: InputBorder.none,
                                 hintText: 'Confirm Password',
                               ),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 14), // Mengatur ukuran teks
                             ),
                           ),
@@ -299,7 +299,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: GoogleFonts.lato(
                       fontWeight: FontWeight.bold,
                       fontSize: 17,
-                      color: Color.fromARGB(255, 113, 111, 111),
+                      color: const Color.fromARGB(255, 113, 111, 111),
                     ),
                   ),
                 ),

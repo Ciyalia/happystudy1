@@ -5,10 +5,12 @@ import 'package:studytimer/screens/sign in/sign_in.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Body extends StatelessWidget {
+  const Body({super.key});
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return Container(
+    return SizedBox(
       height: size.height,
       width: double.infinity,
       child: Stack(
@@ -35,11 +37,11 @@ class Body extends StatelessWidget {
                   style: GoogleFonts.lato(
                     fontSize: 27.0,
                     fontWeight: FontWeight.w600,
-                    color: Color.fromARGB(255, 45, 63, 48),
+                    color: const Color.fromARGB(255, 45, 63, 48),
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 17),
+                const SizedBox(height: 17),
                 Text(
                   'Take control of your study time and achieve extraordinary achievements',
                   style: GoogleFonts.lato(
@@ -49,7 +51,7 @@ class Body extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 18),
+                const SizedBox(height: 18),
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(
@@ -64,14 +66,14 @@ class Body extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) {
-                            return LoginScreen();
+                            return const LoginScreen();
                           },
                         ),
                       );
                     },
                   ),
                 ),
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -82,7 +84,7 @@ class Body extends StatelessWidget {
                         fontSize: 14,
                       ),
                     ),
-                    SizedBox(width: 5),
+                    const SizedBox(width: 5),
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
@@ -90,7 +92,7 @@ class Body extends StatelessWidget {
                           MaterialPageRoute(builder: (context) => Signin()),
                         );
                       },
-                      child: Text(
+                      child: const Text(
                         'Sign In',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,

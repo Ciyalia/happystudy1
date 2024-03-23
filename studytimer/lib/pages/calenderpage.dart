@@ -37,12 +37,12 @@ class ScreenCalendar extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ScreenCalendarState createState() => _ScreenCalendarState();
+  ScreenCalendarState createState() => ScreenCalendarState();
 }
 
-class _ScreenCalendarState extends State<ScreenCalendar> {
+class ScreenCalendarState extends State<ScreenCalendar> {
   late DateTime _selectedDate;
-  List<Map<String, dynamic>> _events = [];
+  final List<Map<String, dynamic>> _events = [];
   late Timer _timer;
   late int _targetSeconds;
   Map<DateTime, double> dailyTimerData = {};
@@ -51,8 +51,8 @@ class _ScreenCalendarState extends State<ScreenCalendar> {
   void initState() {
     super.initState();
     _selectedDate = DateTime.now();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      // Timer logic 
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      // Timer logic
     });
   }
 
@@ -146,7 +146,7 @@ class _ScreenCalendarState extends State<ScreenCalendar> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 5),
+                    const SizedBox(height: 5),
                     Expanded(
                       child: ListView.builder(
                         itemCount: _events.isEmpty ? 1 : _events.length,
@@ -155,22 +155,22 @@ class _ScreenCalendarState extends State<ScreenCalendar> {
                             return Center(
                               child: Column(
                                 children: [
-                                  SizedBox(height: 2),
+                                  const SizedBox(height: 2),
                                   Image.asset(
                                     'assets/images/Logo.png',
                                     width: 65,
                                   ),
-                                  SizedBox(
+                                  const SizedBox(
                                     height: 20,
                                   ),
-                                  Text(
+                                  const Text(
                                     'Your task is still empty, try clicking',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 15,
                                     ),
                                   ),
-                                  Text('the "+" to add your task.'),
+                                  const Text('the "+" to add your task.'),
                                 ],
                               ),
                             );
@@ -186,7 +186,7 @@ class _ScreenCalendarState extends State<ScreenCalendar> {
                                     event['date'], event['targetTime']),
                               );
                             } else {
-                              return SizedBox.shrink();
+                              return const SizedBox.shrink();
                             }
                           }
                         },
@@ -232,7 +232,7 @@ class EventItem extends StatelessWidget {
     return GestureDetector(
       onTap: onStart,
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           border: Border(
             top: BorderSide(color: Colors.black),
             bottom: BorderSide(color: Colors.black),
@@ -290,7 +290,7 @@ class MyCustomButton extends StatelessWidget {
       child: IconButton(
         icon: const Icon(
           Icons.add,
-          color: const Color.fromARGB(255, 255, 255, 255),
+          color: Color.fromARGB(255, 255, 255, 255),
           size: 36,
         ),
         onPressed: () {
@@ -329,7 +329,7 @@ class CalendarPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            margin: EdgeInsets.only(top: 1),
+            margin: const EdgeInsets.only(top: 1),
             child: TableCalendar(
               focusedDay: selectedDate,
               firstDay: DateTime.utc(2010, 10, 16),
@@ -344,7 +344,7 @@ class CalendarPage extends StatelessWidget {
               ),
               calendarStyle: CalendarStyle(
                 selectedDecoration: const BoxDecoration(
-                  color: const Color.fromARGB(255, 62, 78, 47),
+                  color: Color.fromARGB(255, 62, 78, 47),
                   shape: BoxShape.rectangle,
                 ),
                 todayDecoration: BoxDecoration(
@@ -356,8 +356,8 @@ class CalendarPage extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(5),
                 ),
-                todayTextStyle: const TextStyle(
-                    color: const Color.fromARGB(255, 62, 78, 47)),
+                todayTextStyle:
+                    const TextStyle(color: Color.fromARGB(255, 62, 78, 47)),
               ),
               selectedDayPredicate: (day) {
                 return isSameDay(selectedDate, day);
@@ -389,15 +389,15 @@ class NewEventPage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _NewEventPageState createState() => _NewEventPageState();
+  NewEventPageState createState() => NewEventPageState();
 }
 
-class _NewEventPageState extends State<NewEventPage> {
+class NewEventPageState extends State<NewEventPage> {
   final _formKey = GlobalKey<FormState>();
   String _title = '';
   late DateTime _date;
   TimeOfDay _startTime = TimeOfDay.now();
-  Duration _targetTime = Duration();
+  Duration _targetTime = const Duration();
 
   @override
   void initState() {
@@ -464,7 +464,7 @@ class _NewEventPageState extends State<NewEventPage> {
             ),
             ListTile(
               title: const Text('Start Time'),
-              trailing: Text('${_startTime.format(context)}'),
+              trailing: Text(_startTime.format(context)),
               onTap: () async {
                 final pickedTime = await showTimePicker(
                   context: context,
@@ -484,7 +484,7 @@ class _NewEventPageState extends State<NewEventPage> {
                   Expanded(
                     child: TextFormField(
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Hours'),
+                      decoration: const InputDecoration(labelText: 'Hours'),
                       onChanged: (value) {
                         final hours = int.tryParse(value) ?? 0;
                         setState(() {
@@ -496,7 +496,7 @@ class _NewEventPageState extends State<NewEventPage> {
                   Expanded(
                     child: TextFormField(
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Minutes'),
+                      decoration: const InputDecoration(labelText: 'Minutes'),
                       onChanged: (value) {
                         final minutes = int.tryParse(value) ?? 0;
                         setState(() {
@@ -509,7 +509,7 @@ class _NewEventPageState extends State<NewEventPage> {
                   Expanded(
                     child: TextFormField(
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Seconds'),
+                      decoration: const InputDecoration(labelText: 'Seconds'),
                       onChanged: (value) {
                         final seconds = int.tryParse(value) ?? 0;
                         setState(() {
@@ -558,10 +558,10 @@ class TimerPage extends StatefulWidget {
   const TimerPage({Key? key, required this.targetSeconds}) : super(key: key);
 
   @override
-  _TimerPageState createState() => _TimerPageState();
+  TimerPageState createState() => TimerPageState();
 }
 
-class _TimerPageState extends State<TimerPage> {
+class TimerPageState extends State<TimerPage> {
   late int _elapsedSeconds;
   late String _timerDisplay;
   late double _progressValue;
@@ -673,7 +673,7 @@ class _TimerPageState extends State<TimerPage> {
       body: Stack(
         children: [
           Center(
-            child: Container(
+            child: SizedBox(
               width: 300,
               height: 300,
               child: Stack(
@@ -734,7 +734,7 @@ class _TimerPageState extends State<TimerPage> {
                   ElevatedButton(
                     onPressed: _toggleTimer,
                     style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.all(15),
+                      padding: const EdgeInsets.all(15),
                       backgroundColor: const Color.fromARGB(255, 62, 78, 47),
                     ),
                     child: Icon(
@@ -759,10 +759,10 @@ class _TimerPageState extends State<TimerPage> {
                   ElevatedButton(
                     onPressed: _restartTimer,
                     style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.all(15),
-                      backgroundColor: Color.fromARGB(255, 134, 149, 123),
+                      padding: const EdgeInsets.all(15),
+                      backgroundColor: const Color.fromARGB(255, 134, 149, 123),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.restart_alt,
                       size: 30,
                       color: Colors.white,
@@ -794,7 +794,7 @@ class ProgressPainter extends CustomPainter {
     final double radius = size.width / 2;
     final Offset center = Offset(size.width / 2, size.height / 2);
 
-    final double startAngle = -pi / 2;
+    const double startAngle = -pi / 2;
     final double sweepAngle = 2 * pi * progress;
 
     canvas.drawArc(

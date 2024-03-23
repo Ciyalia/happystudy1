@@ -11,7 +11,7 @@ class AccountPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Account'),
+        title: const Text('Account'),
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
@@ -29,11 +29,11 @@ class AccountPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Container(
-                  padding: EdgeInsets.all(30),
+                  padding: const EdgeInsets.all(30),
                   height: MediaQuery.of(context).size.height * 0.5,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.only(
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),
                     ),
@@ -42,7 +42,7 @@ class AccountPage extends StatelessWidget {
                         color: Colors.grey.withOpacity(0.5),
                         spreadRadius: 5,
                         blurRadius: 7,
-                        offset: Offset(0, 3),
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -50,8 +50,8 @@ class AccountPage extends StatelessWidget {
                     shrinkWrap: true,
                     children: [
                       Container(
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: const BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
                               color: Colors.grey,
@@ -62,7 +62,7 @@ class AccountPage extends StatelessWidget {
                         child: Row(
                           children: [
                             Icon(Icons.person, color: Colors.green[800]),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -74,10 +74,10 @@ class AccountPage extends StatelessWidget {
                                     color: Colors.green[800],
                                   ),
                                 ),
-                                SizedBox(height: 5),
+                                const SizedBox(height: 5),
                                 Text(
                                   _username,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     color: Colors.black87,
                                   ),
@@ -87,10 +87,10 @@ class AccountPage extends StatelessWidget {
                           ],
                         ),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       Container(
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: const BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
                               color: Colors.grey,
@@ -101,7 +101,7 @@ class AccountPage extends StatelessWidget {
                         child: Row(
                           children: [
                             Icon(Icons.email, color: Colors.green[800]),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -113,10 +113,10 @@ class AccountPage extends StatelessWidget {
                                     color: Colors.green[800],
                                   ),
                                 ),
-                                SizedBox(height: 5),
+                                const SizedBox(height: 5),
                                 Text(
                                   _email,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     color: Colors.black87,
                                   ),
@@ -126,10 +126,10 @@ class AccountPage extends StatelessWidget {
                           ],
                         ),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       Container(
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: const BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
                               color: Colors.grey,
@@ -140,7 +140,7 @@ class AccountPage extends StatelessWidget {
                         child: Row(
                           children: [
                             Icon(Icons.date_range, color: Colors.green[800]),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -152,10 +152,10 @@ class AccountPage extends StatelessWidget {
                                     color: Colors.green[800],
                                   ),
                                 ),
-                                SizedBox(height: 5),
+                                const SizedBox(height: 5),
                                 Text(
                                   '${_registrationDate.day}/${_registrationDate.month}/${_registrationDate.year}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     color: Colors.black87,
                                   ),
@@ -165,10 +165,10 @@ class AccountPage extends StatelessWidget {
                           ],
                         ),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                               vertical: 15, horizontal: 40),
                           backgroundColor:
                               const Color.fromARGB(255, 47, 62, 48),
@@ -180,7 +180,7 @@ class AccountPage extends StatelessWidget {
                           Navigator.pushReplacementNamed(
                               context, 'login_screen');
                         },
-                        child: Text(
+                        child: const Text(
                           'Logout',
                           style: TextStyle(fontSize: 18, color: Colors.white),
                         ),

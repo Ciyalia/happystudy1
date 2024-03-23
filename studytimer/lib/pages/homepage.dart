@@ -7,13 +7,15 @@ import 'package:studytimer/pages/note.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       home: HomePage(),
     );
   }
@@ -28,7 +30,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  List<Map<String, dynamic>> _events = [];
+  final List<Map<String, dynamic>> _events = [];
 
   late Timer _timer;
   int _start = 0;
@@ -46,20 +48,21 @@ class _HomePageState extends State<HomePage> {
         _start--;
       });
     } else if (_isPlaying && _start == 0) {
-      _timer.cancel(); // Stop the timer
+      _timer.cancel();
+      _isPlaying = false;
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Timer Finished'),
-            content: Text('Congratulations! You have completed your task.'),
+            title: const Text('Timer Finished'),
+            content:
+                const Text('Congratulations! You have completed your task.'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  _isPlaying = false; // Stop the timer when user clicks OK
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
@@ -71,6 +74,7 @@ class _HomePageState extends State<HomePage> {
   void _startTimer(int targetSeconds) {
     setState(() {
       _start = targetSeconds;
+      _isPlaying = true;
     });
   }
 
@@ -95,7 +99,7 @@ class _HomePageState extends State<HomePage> {
                     date, targetTime as TimeOfDay, targetTime as TimeOfDay),
                 onEventClicked: (title, date, endTime) {},
               ),
-              ThankYouPage(),
+              const ThankYouPage(),
             ],
           ),
           Positioned(
@@ -109,17 +113,19 @@ class _HomePageState extends State<HomePage> {
                     onPressed: () {
                       setState(() {
                         _isPlaying = !_isPlaying;
-                        if (!_isPlaying) {
-                          _timer.cancel();
-                        } else {
+                        if (_isPlaying) {
                           _timer = Timer.periodic(
-                              const Duration(seconds: 1), _updateTimer);
+                            const Duration(seconds: 1),
+                            _updateTimer,
+                          );
+                        } else {
+                          _timer.cancel();
                         }
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      shape: CircleBorder(),
-                      padding: EdgeInsets.all(15),
+                      shape: const CircleBorder(),
+                      padding: const EdgeInsets.all(15),
                       backgroundColor: const Color.fromARGB(255, 62, 78, 47),
                     ),
                     child: Icon(
@@ -128,17 +134,17 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(width: 20),
+                  const SizedBox(width: 20),
                   ElevatedButton(
                     onPressed: () {
                       _showTimerDialog(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      shape: CircleBorder(),
-                      padding: EdgeInsets.all(15),
+                      shape: const CircleBorder(),
+                      padding: const EdgeInsets.all(15),
                       backgroundColor: const Color.fromARGB(255, 62, 78, 47),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.add,
                       size: 30,
                       color: Colors.white,
@@ -158,17 +164,17 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text(
                     greeting,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
                         color: Color.fromARGB(255, 62, 78, 47)),
                   ),
                   const SizedBox(height: 4),
-                  Text(
+                  const Text(
                     'Ready to be productive?',
                     style: TextStyle(
                         fontSize: 20,
-                        color: const Color.fromARGB(255, 128, 149, 102)),
+                        color: Color.fromARGB(255, 128, 149, 102)),
                   ),
                 ],
               ),
@@ -184,15 +190,15 @@ class _HomePageState extends State<HomePage> {
                 child: Container(
                   width: 50,
                   height: 50,
-                  color: Color.fromARGB(255, 62, 78, 47),
+                  color: const Color.fromARGB(255, 62, 78, 47),
                   child: IconButton(
-                    icon: Icon(Icons.assignment_outlined),
+                    icon: const Icon(Icons.assignment_outlined),
                     iconSize: 30,
                     color: Colors.white,
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => NotesPage()),
+                        MaterialPageRoute(builder: (context) => const NotesPage()),
                       );
                     },
                   ),
@@ -245,7 +251,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Set Timer"),
+          title: const Text("Set Timer"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -254,7 +260,7 @@ class _HomePageState extends State<HomePage> {
                 onChanged: (value) {
                   hours = int.tryParse(value) ?? 0;
                 },
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: "Hours",
                 ),
               ),
@@ -263,7 +269,7 @@ class _HomePageState extends State<HomePage> {
                 onChanged: (value) {
                   minutes = int.tryParse(value) ?? 0;
                 },
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: "Minutes",
                 ),
               ),
@@ -272,7 +278,7 @@ class _HomePageState extends State<HomePage> {
                 onChanged: (value) {
                   seconds = int.tryParse(value) ?? 0;
                 },
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: "Seconds",
                 ),
               ),
@@ -284,13 +290,13 @@ class _HomePageState extends State<HomePage> {
                 _startTimer(hours * 3600 + minutes * 60 + seconds);
                 Navigator.of(context).pop();
               },
-              child: Text("Start"),
+              child: const Text("Start"),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text("Cancel"),
+              child: const Text("Cancel"),
             ),
           ],
         );
@@ -319,7 +325,7 @@ class _HomePageState extends State<HomePage> {
     String dateString = _getDateString(DateTime.now());
 
     return Center(
-      child: Container(
+      child: SizedBox(
         width: 300,
         height: 300,
         child: Stack(
@@ -471,7 +477,7 @@ class ProgressPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double strokeWidth = 6;
+    const double strokeWidth = 6;
     final double radius = size.width / 2;
     final Offset center = Offset(size.width / 2, size.height / 2);
     final double arcAngle = 2 * progress * math.pi;

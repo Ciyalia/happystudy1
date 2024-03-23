@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(NotesApp());
+  runApp(const NotesApp());
 }
 
 class NotesApp extends StatelessWidget {
+  const NotesApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -12,39 +14,41 @@ class NotesApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: NotesPage(),
+      home: const NotesPage(),
     );
   }
 }
 
 class NotesPage extends StatefulWidget {
+  const NotesPage({super.key});
+
   @override
-  _NotesPageState createState() => _NotesPageState();
+  NotesPageState createState() => NotesPageState();
 }
 
-class _NotesPageState extends State<NotesPage> {
+class NotesPageState extends State<NotesPage> {
   List<Note> notes = [];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(50.0),
+        preferredSize: const Size.fromHeight(50.0),
         child: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios_new_rounded),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
             onPressed: () {
               _onBackButtonPressed(context);
             },
           ),
           title: Container(
-            margin: EdgeInsets.only(top: 10.0),
-            child: Text(
+            margin: const EdgeInsets.only(top: 10.0),
+            child: const Text(
               'Notes',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 34,
-                color: const Color.fromARGB(255, 62, 78, 47),
+                color: Color.fromARGB(255, 62, 78, 47),
               ),
             ),
           ),
@@ -57,37 +61,36 @@ class _NotesPageState extends State<NotesPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset(
-                    'assets/images/Logo.png', // Path to your image
+                    'assets/images/Logo.png',
                     width: 130,
                     height: 130,
                   ),
-                  SizedBox(height: 5),
-                  Text(
+                  const SizedBox(height: 5),
+                  const Text(
                     'Your note is still empty, try clicking',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 18,
-                      color: const Color.fromARGB(255, 62, 78, 47),
+                      color: Color.fromARGB(255, 62, 78, 47),
                     ),
                   ),
-                  Text(
+                  const Text(
                     'the "+" to add your note.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 18,
-                      color: const Color.fromARGB(255, 62, 78, 47),
+                      color: Color.fromARGB(255, 62, 78, 47),
                     ),
                   ),
                 ],
               ),
             )
           : ListView.builder(
-              padding:
-                  EdgeInsets.only(top: 20.0), // Menambahkan jarak dari atas
+              padding: const EdgeInsets.only(top: 20.0),
               itemCount: notes.length,
               itemBuilder: (context, index) {
                 return Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     border: Border(
                       top: BorderSide(color: Colors.grey),
                       bottom: BorderSide(color: Colors.grey),
@@ -96,20 +99,19 @@ class _NotesPageState extends State<NotesPage> {
                   child: ListTile(
                     title: Text(
                       notes[index].title,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     subtitle: Text(
                       notes[index].formattedDate(),
-                      style: TextStyle(fontSize: 14.0, color: Colors.grey),
+                      style: const TextStyle(fontSize: 14.0, color: Colors.grey),
                     ),
                     onTap: () {
                       _navigateToNoteDetail(context, notes[index]);
                     },
-                    contentPadding: EdgeInsets.symmetric(
-                        horizontal: 19.0), // Padding from both sides
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 19.0),
                   ),
                 );
               },
@@ -121,11 +123,11 @@ class _NotesPageState extends State<NotesPage> {
           onPressed: () {
             _navigateToAddNoteScreen(context);
           },
-          child: Icon(
+          shape: const CircleBorder(),
+          child: const Icon(
             Icons.add,
             color: Colors.white,
           ),
-          shape: CircleBorder(),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -135,7 +137,7 @@ class _NotesPageState extends State<NotesPage> {
   void _navigateToAddNoteScreen(BuildContext context) async {
     final newNote = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => NoteEditPage()),
+      MaterialPageRoute(builder: (context) => const NoteEditPage()),
     );
     if (newNote != null) {
       setState(() {
@@ -236,11 +238,13 @@ class Note {
 }
 
 class NoteEditPage extends StatefulWidget {
+  const NoteEditPage({super.key});
+
   @override
-  _NoteEditPageState createState() => _NoteEditPageState();
+  NoteEditPageState createState() => NoteEditPageState();
 }
 
-class _NoteEditPageState extends State<NoteEditPage> {
+class NoteEditPageState extends State<NoteEditPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _textController = TextEditingController();
 
@@ -250,12 +254,11 @@ class _NoteEditPageState extends State<NoteEditPage> {
       appBar: AppBar(
         centerTitle: true,
         actions: [
-          // Mengganti tombol checklist dengan tombol Save
           TextButton(
             onPressed: () {
               _saveNote();
             },
-            child: Text(
+            child: const Text(
               'Save',
               style: TextStyle(
                 color: Colors.black,
@@ -264,12 +267,11 @@ class _NoteEditPageState extends State<NoteEditPage> {
               ),
             ),
           ),
-          // Menambahkan tombol Cancel
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Kembali ke halaman sebelumnya
+              Navigator.pop(context);
             },
-            child: Text(
+            child: const Text(
               'Cancel',
               style: TextStyle(
                 color: Colors.black,
@@ -281,21 +283,21 @@ class _NoteEditPageState extends State<NoteEditPage> {
         ],
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextFormField(
               controller: _titleController,
-              decoration: InputDecoration(labelText: 'Title'),
+              decoration: const InputDecoration(labelText: 'Title'),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextFormField(
               controller: _textController,
               maxLines: null, // Allows multiple lines
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Description',
-                border: InputBorder.none, // Removes the bottom line
+                border: InputBorder.none,
               ),
             ),
           ],
@@ -321,14 +323,14 @@ class _NoteEditPageState extends State<NoteEditPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Error'),
-            content: Text('Please enter a title.'),
+            title: const Text('Error'),
+            content: const Text('Please enter a title.'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
@@ -348,13 +350,13 @@ class _NoteEditPageState extends State<NoteEditPage> {
 class NoteDetailPage extends StatefulWidget {
   final Note note;
 
-  NoteDetailPage({required this.note});
+  const NoteDetailPage({super.key, required this.note});
 
   @override
-  _NoteDetailPageState createState() => _NoteDetailPageState();
+  NoteDetailPageState createState() => NoteDetailPageState();
 }
 
-class _NoteDetailPageState extends State<NoteDetailPage> {
+class NoteDetailPageState extends State<NoteDetailPage> {
   late TextEditingController _titleController;
   late TextEditingController _textController;
 
@@ -369,17 +371,17 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Note Details'),
+        title: const Text('Note Details'),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.check),
+            icon: const Icon(Icons.check),
             onPressed: () {
               _saveNote();
             },
           ),
           IconButton(
-            icon: Icon(Icons.delete),
+            icon: const Icon(Icons.delete),
             onPressed: () {
               _deleteNote();
             },
@@ -393,13 +395,13 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
           children: [
             TextFormField(
               controller: _titleController,
-              decoration: InputDecoration(labelText: 'Title'),
+              decoration: const InputDecoration(labelText: 'Title'),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextFormField(
               controller: _textController,
               maxLines: null, // Allows multiple lines
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Description',
                 border: InputBorder.none, // Removes the bottom line
               ),
@@ -425,14 +427,14 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Error'),
-            content: Text('Please enter a title.'),
+            title: const Text('Error'),
+            content: const Text('Please enter a title.'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
@@ -446,20 +448,20 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete Note'),
-          content: Text('Are you sure you want to delete this note?'),
+          title: const Text('Delete Note'),
+          content: const Text('Are you sure you want to delete this note?'),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context, null);
               },
-              child: Text('Delete'),
+              child: const Text('Delete'),
             ),
           ],
         );

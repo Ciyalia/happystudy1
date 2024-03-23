@@ -17,9 +17,9 @@ Future<void> main() async {
   // Set local time zone
   tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
 
-  final AndroidInitializationSettings initializationSettingsAndroid =
+  const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@drawable/logo');
-  final InitializationSettings initializationSettings =
+  const InitializationSettings initializationSettings =
       InitializationSettings(android: initializationSettingsAndroid);
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
@@ -52,6 +52,6 @@ class AuthenticationWrapper extends StatelessWidget {
       return userLoggedIn;
     }
 
-    return isUserLoggedIn() ? HomePage() : const WelcomeScreen();
+    return isUserLoggedIn() ? const HomePage() : const WelcomeScreen();
   }
 }

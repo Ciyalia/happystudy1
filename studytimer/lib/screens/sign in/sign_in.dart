@@ -8,7 +8,7 @@ class Signin extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  Signin({Key? key});
+  Signin({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +32,10 @@ class Body extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _BodyState createState() => _BodyState();
+  BodyState createState() => BodyState();
 }
 
-class _BodyState extends State<Body> {
+class BodyState extends State<Body> {
   bool _obscurePassword = true;
 
   @override
@@ -81,7 +81,7 @@ class _BodyState extends State<Body> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => LoginScreen(),
+                            builder: (context) => const LoginScreen(),
                           ),
                         );
                       },
@@ -117,11 +117,11 @@ class _BodyState extends State<Body> {
                           Expanded(
                             child: TextField(
                               controller: widget.emailController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 border: InputBorder.none,
                                 hintText: 'Email',
                               ),
-                              style: TextStyle(fontSize: 14),
+                              style: const TextStyle(fontSize: 14),
                             ),
                           ),
                         ],
@@ -150,11 +150,11 @@ class _BodyState extends State<Body> {
                             child: TextField(
                               controller: widget.passwordController,
                               obscureText: _obscurePassword,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 border: InputBorder.none,
                                 hintText: 'Password',
                               ),
-                              style: TextStyle(fontSize: 14),
+                              style: const TextStyle(fontSize: 14),
                             ),
                           ),
                           IconButton(
@@ -243,7 +243,7 @@ class _BodyState extends State<Body> {
                     style: GoogleFonts.lato(
                       fontWeight: FontWeight.bold,
                       fontSize: 17,
-                      color: Color.fromARGB(255, 113, 111, 111),
+                      color: const Color.fromARGB(255, 113, 111, 111),
                     ),
                   ),
                 ),
