@@ -98,7 +98,7 @@ class LoginScreenState extends State<LoginScreen> {
                                 hintText: 'Username',
                               ),
                               style: const TextStyle(
-                                  fontSize: 14), // Mengatur ukuran teks
+                                  fontSize: 14),
                             ),
                           ),
                         ],
@@ -110,7 +110,7 @@ class LoginScreenState extends State<LoginScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 45.0),
                   child: Container(
-                    height: 40, // Menyesuaikan tinggi kontainer
+                    height: 40, 
                     decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
@@ -131,7 +131,7 @@ class LoginScreenState extends State<LoginScreen> {
                                 hintText: 'Email',
                               ),
                               style: const TextStyle(
-                                  fontSize: 14), // Mengatur ukuran teks
+                                  fontSize: 14),
                             ),
                           ),
                         ],
@@ -143,7 +143,7 @@ class LoginScreenState extends State<LoginScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 45.0),
                   child: Container(
-                    height: 40, // Menyesuaikan tinggi kontainer
+                    height: 40, 
                     decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
@@ -165,7 +165,7 @@ class LoginScreenState extends State<LoginScreen> {
                                 hintText: 'Password',
                               ),
                               style: const TextStyle(
-                                  fontSize: 14), // Mengatur ukuran teks
+                                  fontSize: 14), 
                             ),
                           ),
                           IconButton(
@@ -188,7 +188,7 @@ class LoginScreenState extends State<LoginScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 45.0),
                   child: Container(
-                    height: 40, // Menyesuaikan tinggi kontainer
+                    height: 40, 
                     decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
@@ -210,7 +210,7 @@ class LoginScreenState extends State<LoginScreen> {
                                 hintText: 'Confirm Password',
                               ),
                               style: const TextStyle(
-                                  fontSize: 14), // Mengatur ukuran teks
+                                  fontSize: 14), 
                             ),
                           ),
                           IconButton(

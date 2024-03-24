@@ -473,7 +473,7 @@ class CirclePainter extends CustomPainter {
 class ProgressPainter extends CustomPainter {
   final double progress;
 
-  ProgressPainter(this.progress); // Hapus named parameter dan required keyword
+  ProgressPainter(this.progress); 
 
   @override
   void paint(Canvas canvas, Size size) {

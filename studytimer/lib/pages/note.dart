@@ -403,7 +403,7 @@ class NoteDetailPageState extends State<NoteDetailPage> {
               maxLines: null, // Allows multiple lines
               decoration: const InputDecoration(
                 labelText: 'Description',
-                border: InputBorder.none, // Removes the bottom line
+                border: InputBorder.none, 
               ),
             ),
           ],
