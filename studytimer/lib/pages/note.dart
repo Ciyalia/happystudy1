@@ -1,11 +1,16 @@
+import 'dart:io';
+import 'package:share_plus/share_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:studytimer/pages/homepage.dart';
 
 void main() {
   runApp(const NotesApp());
 }
 
 class NotesApp extends StatelessWidget {
-  const NotesApp({super.key});
+  const NotesApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +25,7 @@ class NotesApp extends StatelessWidget {
 }
 
 class NotesPage extends StatefulWidget {
-  const NotesPage({super.key});
+  const NotesPage({Key? key}) : super(key: key);
 
   @override
   NotesPageState createState() => NotesPageState();
@@ -38,7 +43,10 @@ class NotesPageState extends State<NotesPage> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded),
             onPressed: () {
-              _onBackButtonPressed(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
             },
           ),
           title: Container(
@@ -62,15 +70,14 @@ class NotesPageState extends State<NotesPage> {
                 children: [
                   Image.asset(
                     'assets/images/Logo.png',
-                    width: 130,
-                    height: 130,
+                    width: 65,
                   ),
                   const SizedBox(height: 5),
                   const Text(
                     'Your note is still empty, try clicking',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 13,
                       color: Color.fromARGB(255, 62, 78, 47),
                     ),
                   ),
@@ -78,7 +85,7 @@ class NotesPageState extends State<NotesPage> {
                     'the "+" to add your note.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 13,
                       color: Color.fromARGB(255, 62, 78, 47),
                     ),
                   ),
@@ -100,18 +107,29 @@ class NotesPageState extends State<NotesPage> {
                     title: Text(
                       notes[index].title,
                       style: const TextStyle(
-                        fontSize: 18.0,
+                        fontSize: 24.0,
                         fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 62, 78, 47),
                       ),
                     ),
                     subtitle: Text(
                       notes[index].formattedDate(),
-                      style: const TextStyle(fontSize: 14.0, color: Colors.grey),
+                      style: const TextStyle(
+                        fontSize: 12.0,
+                        color: Color.fromARGB(255, 128, 149, 102),
+                      ),
                     ),
                     onTap: () {
                       _navigateToNoteDetail(context, notes[index]);
                     },
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 19.0),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () {
+                        _onDeleteNotePressed(context, notes[index]);
+                      },
+                    ),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 19.0),
                   ),
                 );
               },
@@ -162,6 +180,39 @@ class NotesPageState extends State<NotesPage> {
     }
   }
 
+  void _onDeleteNotePressed(BuildContext context, Note note) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Note'),
+          content: const Text('Are you sure you want to delete this note?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteNote(note);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteNote(Note note) {
+    setState(() {
+      notes.remove(note);
+    });
+  }
+
   void _onBackButtonPressed(BuildContext context) {
     Navigator.pop(context);
   }
@@ -172,13 +223,14 @@ class Note {
   String title;
   String text;
   DateTime dateCreated;
+  File? image;
 
-  Note({
-    required this.id,
-    required this.title,
-    required this.text,
-    required this.dateCreated,
-  });
+  Note(
+      {required this.id,
+      required this.title,
+      required this.text,
+      required this.dateCreated,
+      this.image});
 
   String formattedDate() {
     return '${_getWeekDay(dateCreated.weekday)} ${dateCreated.day} ${_getMonth(dateCreated.month)}';
@@ -238,7 +290,7 @@ class Note {
 }
 
 class NoteEditPage extends StatefulWidget {
-  const NoteEditPage({super.key});
+  const NoteEditPage({Key? key}) : super(key: key);
 
   @override
   NoteEditPageState createState() => NoteEditPageState();
@@ -247,12 +299,38 @@ class NoteEditPage extends StatefulWidget {
 class NoteEditPageState extends State<NoteEditPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _textController = TextEditingController();
+  File? image;
+
+  double getImageWidthFactor() {
+    if (image != null) {
+      return 0.4;
+    } else {
+      return 0.0;
+    }
+  }
+
+  Future<void> getImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? imagePicked =
+        await picker.pickImage(source: ImageSource.gallery);
+    if (imagePicked != null) {
+      setState(() {
+        image = File(imagePicked.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         actions: [
           TextButton(
             onPressed: () {
@@ -261,43 +339,111 @@ class NoteEditPageState extends State<NoteEditPage> {
             child: const Text(
               'Save',
               style: TextStyle(
-                color: Colors.black,
+                color: Color.fromARGB(255, 128, 149, 102),
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
             ),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'getImage') {
+                getImage();
+              } else if (value == 'share') {
+                _share(_titleController.text, _textController.text);
+              }
             },
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'getImage',
+                child: ListTile(
+                  leading: Icon(Icons.image_outlined,
+                      color: Color.fromARGB(255, 62, 78, 47)),
+                  title: Text('Add Image',
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 62, 78, 47),
+                      )),
+                ),
               ),
-            ),
+              const PopupMenuItem<String>(
+                value: 'share',
+                child: ListTile(
+                  leading: Icon(Icons.ios_share_outlined,
+                      color: Color.fromARGB(255, 62, 78, 47)),
+                  title: Text(
+                    'Share',
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 62, 78, 47),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(32.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
-            ),
-            const SizedBox(height: 16.0),
-            TextFormField(
-              controller: _textController,
-              maxLines: null, // Allows multiple lines
               decoration: const InputDecoration(
-                labelText: 'Description',
-                border: InputBorder.none,
+                  hintText: 'Title',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(
+                    fontSize: 32.0,
+                  )),
+              style: const TextStyle(
+                  fontSize: 32.0,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 62, 78, 47)),
+            ),
+            const SizedBox(height: 2.0),
+            Text(
+              DateFormat('EEE dd MMM, HH:mm').format(DateTime.now()),
+              style: const TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.w600,
+                color: Color.fromARGB(255, 128, 149, 102),
+              ),
+            ),
+            const SizedBox(height: 12.0),
+            image != null
+                ? SizedBox(
+                    height: MediaQuery.of(context).size.width *
+                        getImageWidthFactor(),
+                    width: MediaQuery.of(context).size.width *
+                        getImageWidthFactor(),
+                    child: Image.file(
+                      image!,
+                      fit: BoxFit.cover,
+                    ))
+                : Container(),
+            const SizedBox(height: 12.0),
+            Expanded(
+              child: Container(
+                height: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  color: const Color.fromARGB(255, 246, 246, 246),
+                ),
+                child: TextField(
+                  controller: _textController,
+                  maxLines: null,
+                  decoration: const InputDecoration(
+                    hintText: 'Add your text here',
+                    border: InputBorder.none,
+                    hintStyle: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w500,
+                      color: Color.fromARGB(255, 119, 119, 119),
+                    ),
+                    alignLabelWithHint: true,
+                  ),
+                ),
               ),
             ),
           ],
@@ -309,12 +455,14 @@ class NoteEditPageState extends State<NoteEditPage> {
   void _saveNote() {
     final title = _titleController.text;
     final text = _textController.text;
+
     if (title.isNotEmpty) {
       final newNote = Note(
         id: DateTime.now().millisecondsSinceEpoch,
         title: title,
         text: text,
         dateCreated: DateTime.now(),
+        image: image,
       );
       Navigator.pop(context, newNote);
     } else {
@@ -339,18 +487,42 @@ class NoteEditPageState extends State<NoteEditPage> {
     }
   }
 
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _textController.dispose();
-    super.dispose();
+  void _share(String title, String text) {
+    final title = _titleController.text;
+    final text = _textController.text;
+
+    if (title.isNotEmpty || text.isNotEmpty || image != null) {
+      if (image != null) {
+        Share.shareFiles([image!.path], text: '$title\n$text');
+      } else {
+        Share.share(text);
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('No text or image to share.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 }
 
 class NoteDetailPage extends StatefulWidget {
   final Note note;
 
-  const NoteDetailPage({super.key, required this.note});
+  const NoteDetailPage({Key? key, required this.note}) : super(key: key);
 
   @override
   NoteDetailPageState createState() => NoteDetailPageState();
@@ -359,51 +531,156 @@ class NoteDetailPage extends StatefulWidget {
 class NoteDetailPageState extends State<NoteDetailPage> {
   late TextEditingController _titleController;
   late TextEditingController _textController;
+  File? image;
+
+  double getImageWidthFactor() {
+    if (image != null) {
+      return 0.4;
+    } else {
+      return 0.0;
+    }
+  }
+
+  Future<void> getImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? imagePicked =
+        await picker.pickImage(source: ImageSource.gallery);
+    if (imagePicked != null) {
+      setState(() {
+        image = File(imagePicked.path);
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.note.title);
     _textController = TextEditingController(text: widget.note.text);
+    image = widget.note.image;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Note Details'),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
+          TextButton(
             onPressed: () {
               _saveNote();
             },
+            child: const Text(
+              'Save',
+              style: TextStyle(
+                color: Color.fromARGB(255, 128, 149, 102),
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () {
-              _deleteNote();
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'getImage') {
+                getImage();
+              } else if (value == 'share') {
+                _share(_titleController.text, _textController.text);
+              }
             },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'getImage',
+                child: ListTile(
+                  leading: Icon(Icons.image_outlined,
+                      color: Color.fromARGB(255, 62, 78, 47)),
+                  title: Text(
+                    'Add Image',
+                    style: TextStyle(color: Color.fromARGB(255, 63, 78, 47)),
+                  ),
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'share',
+                child: ListTile(
+                  leading: Icon(Icons.ios_share_outlined,
+                      color: Color.fromARGB(255, 62, 78, 47)),
+                  title: Text('Share',
+                      style: TextStyle(color: Color.fromARGB(255, 62, 78, 47))),
+                ),
+              ),
+            ],
           ),
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(32.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
-            ),
-            const SizedBox(height: 16.0),
-            TextFormField(
-              controller: _textController,
-              maxLines: null, // Allows multiple lines
               decoration: const InputDecoration(
-                labelText: 'Description',
-                border: InputBorder.none, 
+                  hintText: 'Title',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(
+                    fontSize: 32.0,
+                  )),
+              style: const TextStyle(
+                  fontSize: 32.0,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 62, 78, 47)),
+            ),
+            const SizedBox(height: 2.0),
+            Text(
+              DateFormat('EEE dd MMM, HH:mm').format(DateTime.now()),
+              style: const TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.w600,
+                color: Color.fromARGB(255, 128, 149, 102),
+              ),
+            ),
+            const SizedBox(height: 12.0),
+            image != null
+                ? SizedBox(
+                    height: MediaQuery.of(context).size.width *
+                        getImageWidthFactor(),
+                    width: MediaQuery.of(context).size.width *
+                        getImageWidthFactor(),
+                    child: Image.file(
+                      image!,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Container(),
+            const SizedBox(height: 12.0),
+            Expanded(
+              child: Container(
+                height: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  color: const Color.fromARGB(255, 246, 246, 246),
+                ),
+                child: TextField(
+                  controller: _textController,
+                  maxLines: null,
+                  decoration: const InputDecoration(
+                    hintText: 'Add your text here',
+                    border: InputBorder.none,
+                    hintStyle: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w500,
+                      color: Color.fromARGB(255, 119, 119, 119),
+                    ),
+                    alignLabelWithHint: true,
+                  ),
+                ),
               ),
             ),
           ],
@@ -419,6 +696,8 @@ class NoteDetailPageState extends State<NoteDetailPage> {
       final updatedNote = widget.note.copyWith(
         title: title,
         text: text,
+        dateCreated: DateTime.now(),
+        image: image,
       );
       Navigator.pop(context, updatedNote);
     } else {
@@ -443,37 +722,35 @@ class NoteDetailPageState extends State<NoteDetailPage> {
     }
   }
 
-  void _deleteNote() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Note'),
-          content: const Text('Are you sure you want to delete this note?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, null);
-              },
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  void _share(String title, String text) {
+    final title = _titleController.text;
+    final text = _textController.text;
 
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _textController.dispose();
-    super.dispose();
+    if (title.isNotEmpty || text.isNotEmpty || image != null) {
+      if (image != null) {
+        Share.shareFiles([image!.path], text: '$title\n$text');
+      } else {
+        Share.share(text);
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('No text or image to share.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 }
 
@@ -483,12 +760,14 @@ extension CopyWithExtension on Note {
     String? title,
     String? text,
     DateTime? dateCreated,
+    File? image,
   }) {
     return Note(
       id: id ?? this.id,
       title: title ?? this.title,
       text: text ?? this.text,
       dateCreated: dateCreated ?? this.dateCreated,
+      image: image ?? this.image,
     );
   }
 }

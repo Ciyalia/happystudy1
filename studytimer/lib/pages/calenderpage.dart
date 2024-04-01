@@ -1,10 +1,12 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:logger/logger.dart';
+
+final Logger logger = Logger();
 
 void main() {
   runApp(const MyApp());
@@ -17,17 +19,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: ScreenCalendar(
-        onEventAdded: (String title, DateTime date, String targetTime) {},
-        onEventClicked: (String title, DateTime date, String targetTime) {},
+        onEventAdded: (String title, DateTime date, String startTime) {},
+        onEventClicked: (String title, DateTime date, String startTime) {},
       ),
     );
   }
 }
 
 class ScreenCalendar extends StatefulWidget {
-  final void Function(String title, DateTime date, String targetTime)
+  final void Function(String title, DateTime date, String startTime)
       onEventAdded;
-  final void Function(String title, DateTime date, String targetTime)
+  final void Function(String title, DateTime date, String startTime)
       onEventClicked;
 
   const ScreenCalendar({
@@ -44,16 +46,13 @@ class ScreenCalendarState extends State<ScreenCalendar> {
   late DateTime _selectedDate;
   final List<Map<String, dynamic>> _events = [];
   late Timer _timer;
-  late int _targetSeconds;
   Map<DateTime, double> dailyTimerData = {};
 
   @override
   void initState() {
     super.initState();
     _selectedDate = DateTime.now();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      // Timer logic
-    });
+    _timer = Timer(const Duration(seconds: 0), () {});
   }
 
   @override
@@ -62,12 +61,12 @@ class ScreenCalendarState extends State<ScreenCalendar> {
     super.dispose();
   }
 
-  void _addEvent(String title, DateTime date, String targetTime) {
+  void _addEvent(String title, DateTime date, String startTime) {
     setState(() {
       _events.add({
         'title': title,
         'date': date,
-        'targetTime': targetTime,
+        'Time': startTime,
       });
     });
   }
@@ -76,34 +75,6 @@ class ScreenCalendarState extends State<ScreenCalendar> {
     setState(() {
       _events.removeAt(index);
     });
-  }
-
-  void _startTimer(String title, DateTime date, String targetTime) {
-    _targetSeconds = _calculateSeconds(targetTime);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TimerPage(targetSeconds: _targetSeconds),
-      ),
-    );
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (_targetSeconds <= 0) {
-          timer.cancel();
-        } else {
-          _targetSeconds--;
-        }
-      });
-    });
-  }
-
-  int _calculateSeconds(String targetTime) {
-    final parts = targetTime.split(' ');
-    final hours = int.parse(parts[0].replaceAll('h', ''));
-    final minutes = int.parse(parts[1].replaceAll('m', ''));
-    final seconds = int.parse(parts[2].replaceAll('s', ''));
-    return (hours * 3600) + (minutes * 60) + seconds;
   }
 
   @override
@@ -132,21 +103,21 @@ class ScreenCalendarState extends State<ScreenCalendar> {
             child: Padding(
               padding: const EdgeInsets.only(left: 20, right: 20),
               child: Container(
-                margin: const EdgeInsets.only(top: 490),
+                margin: const EdgeInsets.only(top: 460),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Align(
                       alignment: Alignment.center,
                       child: Text(
-                        'Task',
+                        'Reminder',
                         style: GoogleFonts.lato(
                           fontSize: 25,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 35),
                     Expanded(
                       child: ListView.builder(
                         itemCount: _events.isEmpty ? 1 : _events.length,
@@ -163,14 +134,23 @@ class ScreenCalendarState extends State<ScreenCalendar> {
                                   const SizedBox(
                                     height: 20,
                                   ),
-                                  const Text(
+                                  Text(
                                     'Your task is still empty, try clicking',
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 15,
+                                    style: GoogleFonts.lato(
+                                      textStyle: const TextStyle(
+                                        fontSize: 13,
+                                      ),
                                     ),
                                   ),
-                                  const Text('the "+" to add your task.'),
+                                  Text(
+                                    'the "+" to add your task.',
+                                    style: GoogleFonts.lato(
+                                      textStyle: const TextStyle(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             );
@@ -179,11 +159,40 @@ class ScreenCalendarState extends State<ScreenCalendar> {
                             if (_selectedDate.year == event['date'].year &&
                                 _selectedDate.month == event['date'].month &&
                                 _selectedDate.day == event['date'].day) {
-                              return EventItem(
-                                event: event,
-                                onDelete: () => _deleteEvent(index),
-                                onStart: () => _startTimer(event['title'],
-                                    event['date'], event['targetTime']),
+                              return Dismissible(
+                                key: Key(index.toString()),
+                                direction: DismissDirection.endToStart,
+                                background: Container(
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 20.0),
+                                  color: Colors.grey[600],
+                                  child: const Icon(Icons.delete,
+                                      color: Colors.white),
+                                ),
+                                onDismissed: (direction) {
+                                  _deleteEvent(index);
+                                  try {
+                                    ScaffoldMessenger.of(context)
+                                        .hideCurrentSnackBar();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(
+                                              "Event ${event['title']} deleted")),
+                                    );
+                                  } catch (e, stackTrace) {
+                                    logger.e('Error: $e',
+                                        error: e, stackTrace: stackTrace);
+                                  }
+                                },
+                                child: EventItem(
+                                  event: event,
+                                  onDelete: () => _deleteEvent(index),
+                                  onStart: () => (
+                                    event['title'],
+                                    event['date'],
+                                    event['Time']
+                                  ),
+                                ),
                               );
                             } else {
                               return const SizedBox.shrink();
@@ -227,40 +236,58 @@ class EventItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String targetTime = event['targetTime'];
+    final String startTime = event['Time'];
 
-    return GestureDetector(
-      onTap: onStart,
-      child: Container(
-        decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(color: Colors.black),
-            bottom: BorderSide(color: Colors.black),
+    return Dismissible(
+      key: Key(event['title']),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20.0),
+        color: Colors.grey[600],
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      onDismissed: (direction) {
+        onDelete();
+        try {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Event ${event['title']} deleted")),
+          );
+        } catch (e, stackTrace) {
+          logger.e('Error: $e', error: e, stackTrace: stackTrace);
+        }
+      },
+      child: GestureDetector(
+        onTap: onStart,
+        child: Container(
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(color: Colors.black),
+              bottom: BorderSide(color: Colors.black),
+            ),
           ),
-        ),
-        padding: const EdgeInsets.all(10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              event['title'],
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  ' $targetTime',
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded),
-              onPressed: onDelete,
-              iconSize: 25,
-            ),
-          ],
+          padding: const EdgeInsets.all(19),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                event['title'],
+                style:
+                    const TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    ' $startTime',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+              const Icon(Icons.notifications)
+            ],
+          ),
         ),
       ),
     );
@@ -338,9 +365,21 @@ class CalendarPage extends StatelessWidget {
               onFormatChanged: (format) {},
               startingDayOfWeek: StartingDayOfWeek.sunday,
               daysOfWeekVisible: true,
-              headerStyle: const HeaderStyle(
+              headerStyle: HeaderStyle(
                 titleCentered: true,
                 formatButtonVisible: false,
+                titleTextStyle: GoogleFonts.lato(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              daysOfWeekStyle: DaysOfWeekStyle(
+                weekdayStyle: GoogleFonts.lato(
+                  fontWeight: FontWeight.bold,
+                ),
+                weekendStyle: GoogleFonts.lato(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               calendarStyle: CalendarStyle(
                 selectedDecoration: const BoxDecoration(
@@ -356,8 +395,9 @@ class CalendarPage extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(5),
                 ),
-                todayTextStyle:
-                    const TextStyle(color: Color.fromARGB(255, 62, 78, 47)),
+                todayTextStyle: GoogleFonts.lato(
+                  color: const Color.fromARGB(255, 62, 78, 47),
+                ),
               ),
               selectedDayPredicate: (day) {
                 return isSameDay(selectedDate, day);
@@ -397,12 +437,12 @@ class NewEventPageState extends State<NewEventPage> {
   String _title = '';
   late DateTime _date;
   TimeOfDay _startTime = TimeOfDay.now();
-  Duration _targetTime = const Duration();
 
   @override
   void initState() {
     super.initState();
     _date = widget.selectedDate;
+    _startTime = TimeOfDay.now();
   }
 
   Future<void> _scheduleNotification(DateTime scheduledDateTime) async {
@@ -439,396 +479,235 @@ class NewEventPageState extends State<NewEventPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Task'),
+        title: const Text('Create Reminder'),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          children: <Widget>[
-            TextFormField(
-              decoration: const InputDecoration(labelText: 'Title'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a title';
-                }
-                return null;
-              },
-              onSaved: (value) {
-                _title = value ?? '';
-              },
-            ),
-            ListTile(
-              title: const Text('Date'),
-              trailing: Text('${_date.day}/${_date.month}/${_date.year}'),
-            ),
-            ListTile(
-              title: const Text('Start Time'),
-              trailing: Text(_startTime.format(context)),
-              onTap: () async {
-                final pickedTime = await showTimePicker(
-                  context: context,
-                  initialTime: _startTime,
-                );
-                if (pickedTime != null && pickedTime != _startTime) {
-                  setState(() {
-                    _startTime = pickedTime;
-                  });
-                }
-              },
-            ),
-            ListTile(
-              title: const Text('Target Time'),
-              subtitle: Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Hours'),
-                      onChanged: (value) {
-                        final hours = int.tryParse(value) ?? 0;
-                        setState(() {
-                          _targetTime = Duration(hours: hours);
-                        });
-                      },
-                    ),
-                  ),
-                  Expanded(
-                    child: TextFormField(
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Minutes'),
-                      onChanged: (value) {
-                        final minutes = int.tryParse(value) ?? 0;
-                        setState(() {
-                          _targetTime =
-                              _targetTime + Duration(minutes: minutes);
-                        });
-                      },
-                    ),
-                  ),
-                  Expanded(
-                    child: TextFormField(
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Seconds'),
-                      onChanged: (value) {
-                        final seconds = int.tryParse(value) ?? 0;
-                        setState(() {
-                          _targetTime =
-                              _targetTime + Duration(seconds: seconds);
-                        });
-                      },
-                    ),
-                  ),
-                ],
+      body: Center(
+        child: Container(
+          width: 330,
+          height: 400,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: const Offset(0, 3),
               ),
+            ],
+          ),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              children: <Widget>[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 8.0),
+                      child: Text('Subject'),
+                    ),
+                    Container(
+                      height: 40,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: TextFormField(
+                        textAlignVertical: TextAlignVertical.center,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Enter title',
+                          contentPadding: EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a title';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          _title = value ?? '';
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 10),
+                _buildDateTimeInput(
+                  label: 'Date',
+                  value: '${_date.day}/${_date.month}/${_date.year}',
+                  onTap: () async {
+                    final pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: _date,
+                      firstDate: DateTime(2022),
+                      lastDate: DateTime(2030),
+                    );
+                    if (pickedDate != null) {
+                      setState(() {
+                        _date = pickedDate;
+                      });
+                    }
+                  },
+                  icon: Icons.calendar_today,
+                ),
+
+                // Spasi
+                const SizedBox(height: 10),
+                _buildDateTimeInput(
+                  label: 'Time',
+                  value: _startTime.format(context),
+                  onTap: () async {
+                    final pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: _startTime,
+                    );
+                    if (pickedTime != null && pickedTime != _startTime) {
+                      setState(() {
+                        _startTime = pickedTime;
+                      });
+                    }
+                  },
+                  icon: Icons.timer_outlined,
+                ),
+
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all<Color>(Colors.white),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        side: MaterialStateProperty.all<BorderSide>(
+                          const BorderSide(
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                      child: SizedBox(
+                        width: 90,
+                        child: Center(
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    OutlinedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          widget.onEventAdded(
+                              _title, _date, _startTime.format(context));
+                          final scheduledDateTime = DateTime(
+                            _date.year,
+                            _date.month,
+                            _date.day,
+                            _startTime.hour,
+                            _startTime.minute,
+                          );
+                          _scheduleNotification(scheduledDateTime);
+                          Navigator.pop(context);
+                        }
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            const Color.fromARGB(255, 62, 78, 47)),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        side: MaterialStateProperty.all<BorderSide>(
+                          const BorderSide(
+                            color: Color.fromARGB(255, 62, 78, 47),
+                          ),
+                        ),
+                      ),
+                      child: const SizedBox(
+                        width: 90,
+                        child: Center(
+                          child: Text(
+                            'Create',
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
-                  final targetHours = _targetTime.inHours;
-                  final targetMinutes = (_targetTime.inMinutes % 60);
-                  final targetSeconds = (_targetTime.inSeconds % 60);
-                  final targetTimeString =
-                      '${targetHours}h ${targetMinutes}m ${targetSeconds}s';
-                  widget.onEventAdded(_title, _date, targetTimeString);
-                  final scheduledDateTime = DateTime(
-                    _date.year,
-                    _date.month,
-                    _date.day,
-                    _startTime.hour,
-                    _startTime.minute,
-                  );
-                  _scheduleNotification(scheduledDateTime);
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
-}
 
-class TimerPage extends StatefulWidget {
-  final int targetSeconds;
-
-  const TimerPage({Key? key, required this.targetSeconds}) : super(key: key);
-
-  @override
-  TimerPageState createState() => TimerPageState();
-}
-
-class TimerPageState extends State<TimerPage> {
-  late int _elapsedSeconds;
-  late String _timerDisplay;
-  late double _progressValue;
-  late int hours;
-  late int minutes;
-  late int seconds;
-  late Timer _timer;
-  late bool _isPlaying;
-
-  @override
-  void initState() {
-    super.initState();
-    _elapsedSeconds = 0;
-    _timerDisplay = _formatTime(_elapsedSeconds);
-    _progressValue = 0.0;
-    hours = widget.targetSeconds ~/ 3600;
-    minutes = (widget.targetSeconds % 3600) ~/ 60;
-    seconds = widget.targetSeconds % 60;
-    _isPlaying = false;
-
-    _startTimer();
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  void _startTimer() {
-    const oneSecond = Duration(seconds: 1);
-    _timer = Timer.periodic(oneSecond, (timer) {
-      setState(() {
-        if (_elapsedSeconds < widget.targetSeconds) {
-          _elapsedSeconds++;
-          _timerDisplay = _formatTime(_elapsedSeconds);
-          _progressValue = _elapsedSeconds / widget.targetSeconds;
-          hours = (widget.targetSeconds - _elapsedSeconds) ~/ 3600;
-          minutes = ((widget.targetSeconds - _elapsedSeconds) % 3600) ~/ 60;
-          seconds = (widget.targetSeconds - _elapsedSeconds) % 60;
-        } else {
-          timer.cancel();
-
-          // Tampilkan dialog
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text("Times Up"),
-                content: const Text("Congratulation!"),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text("OK"),
-                  ),
-                ],
-              );
-            },
-          );
-        }
-      });
-    });
-  }
-
-  String _formatTime(int seconds) {
-    final hours = seconds ~/ 3600;
-    final minutes = (seconds % 3600) ~/ 60;
-    final remainingSeconds = seconds % 60;
-    return '${_twoDigits(hours)}:${_twoDigits(minutes)}:${_twoDigits(remainingSeconds)}';
-  }
-
-  String _twoDigits(int n) {
-    if (n >= 10) return '$n';
-    return '0$n';
-  }
-
-  void _toggleTimer() {
-    setState(() {
-      _isPlaying = !_isPlaying;
-      if (_isPlaying) {
-        if (!_timer.isActive) {
-          _startTimer();
-        }
-      } else {
-        _timer.cancel();
-      }
-    });
-  }
-
-  void _restartTimer() {
-    setState(() {
-      _elapsedSeconds = 0;
-      _timerDisplay = _formatTime(_elapsedSeconds);
-      _progressValue = 0.0;
-      hours = widget.targetSeconds ~/ 3600;
-      minutes = (widget.targetSeconds % 3600) ~/ 60;
-      seconds = widget.targetSeconds % 60;
-    });
-    _timer.cancel();
-    _startTimer();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          Center(
-            child: SizedBox(
-              width: 300,
-              height: 300,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Positioned(
-                    top: 1,
-                    child: SizedBox(
-                      width: 250,
-                      height: 250,
-                      child: CustomPaint(
-                        painter: CirclePainter(),
-                      ),
+  Widget _buildDateTimeInput({
+    required String label,
+    required String value,
+    required Function onTap,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Text(label),
+        ),
+        Container(
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: InkWell(
+            onTap: onTap as void Function()?,
+            child: Stack(
+              alignment: Alignment.centerRight,
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      value,
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                  Positioned(
-                    top: 1,
-                    child: SizedBox(
-                      width: 250,
-                      height: 250,
-                      child: CustomPaint(
-                        painter: ProgressPainter(_progressValue),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _timerDisplay,
-                              style: const TextStyle(
-                                  fontSize: 40, fontWeight: FontWeight.w500),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                Icon(icon),
+              ],
             ),
           ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: _toggleTimer,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(15),
-                      backgroundColor: const Color.fromARGB(255, 62, 78, 47),
-                    ),
-                    child: Icon(
-                      _isPlaying ? Icons.pause : Icons.play_arrow,
-                      size: 30,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 60,
-            right: 0,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    onPressed: _restartTimer,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(15),
-                      backgroundColor: const Color.fromARGB(255, 134, 149, 123),
-                    ),
-                    child: const Icon(
-                      Icons.restart_alt,
-                      size: 30,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
-  }
-}
-
-class ProgressPainter extends CustomPainter {
-  final double progress;
-
-  ProgressPainter(this.progress);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = const Color.fromARGB(255, 62, 78, 47)
-      ..strokeWidth = 6
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final double radius = size.width / 2;
-    final Offset center = Offset(size.width / 2, size.height / 2);
-
-    const double startAngle = -pi / 2;
-    final double sweepAngle = 2 * pi * progress;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      sweepAngle,
-      false,
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
-}
-
-class CirclePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = const Color.fromARGB(255, 224, 224, 224)
-      ..strokeWidth = 6
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final double radius = size.width / 2;
-    final Offset center = Offset(size.width / 2, size.height / 2);
-
-    canvas.drawCircle(center, radius, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
   }
 }

@@ -41,6 +41,12 @@ dependencies:
   table_calendar: ^3.0.9
   flutter_local_notifications: ^9.9.1
   timezone: ^0.8.0
+  logger: ^2.2.0
+  image_picker: ^1.0.7
+  share_plus: ^8.0.2
+  flutter_svg: ^2.0.10+1 
+  signature: ^5.4.1
+  image: ^4.0.13
 
 dev_dependencies:
   flutter_test:

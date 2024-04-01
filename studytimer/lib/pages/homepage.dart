@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:studytimer/pages/calenderpage.dart';
-import 'package:studytimer/pages/happy.dart';
 import 'package:studytimer/pages/note.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:studytimer/screens/welcome/welcome_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,35 +34,81 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   final List<Map<String, dynamic>> _events = [];
 
-  late Timer _timer;
+  late Timer _timer = Timer(Duration.zero, () {});
   int _start = 0;
   bool _isPlaying = false;
+  bool _isWorking = true;
+  bool isSessionFinished = false;
+  int _elapsedFocusTime = 0;
+  int _elapsedBreakTime = 0;
+  late final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 1), _updateTimer);
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   }
 
-  void _updateTimer(Timer timer) {
-    if (_isPlaying && _start > 0) {
-      setState(() {
-        _start--;
-      });
-    } else if (_isPlaying && _start == 0) {
-      _timer.cancel();
-      _isPlaying = false;
+  Future<void> _showNotification() async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'your channel id',
+      'your channel name',
+      sound: RawResourceAndroidNotificationSound('notification'),
+    );
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'keep going',
+      'complete youre session',
+      platformChannelSpecifics,
+    );
+  }
+
+  void handleSessionChange() {
+    _showNotification();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: _isWorking
+              ? const Text('Break Session Started')
+              : const Text('Work Session Started'),
+          content: _isWorking
+              ? const Text('Take a break for 5 minutes!')
+              : const Text('Focus for 25 minutes!'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _handlePomodoroFinished() {
+    _showNotification();
+    if (_isWorking) {
+      _startTimer(25);
+    } else {
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Timer Finished'),
-            content:
-                const Text('Congratulations! You have completed your task.'),
+            title: const Text('Congratulations!'),
+            content: const Text('You have completed one session.'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
+                  setState(() {
+                    isSessionFinished = true;
+                  });
                 },
                 child: const Text('OK'),
               ),
@@ -71,11 +119,55 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _startTimer(int targetSeconds) {
+  void _updateTimer(Timer timer) {
+    if (_isPlaying && _start > 0) {
+      setState(() {
+        _start--;
+      });
+      _updateElapsedTimes(1);
+    } else if (_isPlaying && _start == 0) {
+      if (_isWorking) {
+        _handlePomodoroFinished();
+      } else {
+        _startTimer(5);
+      }
+    }
+  }
+
+  void _updateElapsedTimes(int minutes) {
+    if (_isWorking) {
+      _elapsedFocusTime += minutes;
+    } else {
+      _elapsedBreakTime += minutes;
+    }
+  }
+
+  void _startTimer(int targetMinutes) {
     setState(() {
-      _start = targetSeconds;
+      _start = targetMinutes * 60;
       _isPlaying = true;
+      _isWorking = !_isWorking;
     });
+    handleSessionChange();
+    if (targetMinutes == 25 && _isWorking) {
+      _timer = Timer(const Duration(minutes: 25), () {
+        _handlePomodoroFinished();
+        if (!isSessionFinished) {
+          _startTimer(5);
+        } else {
+          _timer.cancel();
+        }
+      });
+    } else if (targetMinutes == 5 && !_isWorking) {
+      _timer = Timer(const Duration(minutes: 5), () {
+        _handlePomodoroFinished();
+        if (!isSessionFinished) {
+          _startTimer(25);
+        } else {
+          _timer.cancel();
+        }
+      });
+    }
   }
 
   @override
@@ -95,16 +187,16 @@ class _HomePageState extends State<HomePage> {
             children: [
               _buildHomeScreen(_events, progress, hours, minutes, seconds),
               ScreenCalendar(
-                onEventAdded: (title, date, targetTime) => _addEvent(title,
-                    date, targetTime as TimeOfDay, targetTime as TimeOfDay),
+                onEventAdded: (title, date, startTime) => _addEvent(title, date,
+                    startTime as TimeOfDay, startTime as TimeOfDay),
                 onEventClicked: (title, date, endTime) {},
               ),
-              const ThankYouPage(),
+              const NotesApp(),
             ],
           ),
           Positioned(
-            bottom: 10,
-            left: MediaQuery.of(context).size.width / 2 - 80,
+            bottom: 70,
+            left: 140,
             child: Visibility(
               visible: _selectedIndex == 0,
               child: Row(
@@ -123,31 +215,85 @@ class _HomePageState extends State<HomePage> {
                         }
                       });
                     },
-                    style: ElevatedButton.styleFrom(
+                    style: OutlinedButton.styleFrom(
                       shape: const CircleBorder(),
-                      padding: const EdgeInsets.all(15),
-                      backgroundColor: const Color.fromARGB(255, 62, 78, 47),
+                      padding: const EdgeInsets.all(8),
+                      side: const BorderSide(
+                          width: 4, color: Color.fromARGB(255, 62, 78, 47)),
                     ),
                     child: Icon(
-                      _isPlaying ? Icons.pause : Icons.play_arrow,
-                      size: 30,
-                      color: Colors.white,
+                      _isPlaying ? Icons.pause : Icons.play_arrow_rounded,
+                      size: 40,
+                      color: const Color.fromARGB(255, 62, 78, 47),
                     ),
                   ),
                   const SizedBox(width: 20),
                   ElevatedButton(
                     onPressed: () {
-                      _showTimerDialog(context);
+                      setState(() {
+                        _timer.cancel();
+                        _isPlaying = false;
+                        _start = 0;
+                        _elapsedFocusTime = 0;
+                        _elapsedBreakTime = 0;
+                        isSessionFinished = false;
+                      });
                     },
-                    style: ElevatedButton.styleFrom(
+                    style: OutlinedButton.styleFrom(
                       shape: const CircleBorder(),
-                      padding: const EdgeInsets.all(15),
-                      backgroundColor: const Color.fromARGB(255, 62, 78, 47),
+                      padding: const EdgeInsets.all(8),
+                      side: const BorderSide(
+                          width: 4, color: Color.fromARGB(255, 62, 78, 47)),
                     ),
                     child: const Icon(
-                      Icons.add,
-                      size: 30,
-                      color: Colors.white,
+                      Icons.stop_rounded,
+                      size: 40,
+                      color: Color.fromARGB(255, 62, 78, 47),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            top: 45,
+            left: 20,
+            child: Visibility(
+              visible: _selectedIndex == 0,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: TextSpan(
+                      style: GoogleFonts.lato(
+                        textStyle: const TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w600,
+                          color: Color.fromARGB(255, 62, 78, 47),
+                        ),
+                      ),
+                      children: [
+                        TextSpan(
+                          text: greeting,
+                        ),
+                        WidgetSpan(
+                          child: SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: Image.asset('assets/images/👋🏻.png'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Ready to be productive?',
+                    style: GoogleFonts.lato(
+                      textStyle: const TextStyle(
+                        fontSize: 20,
+                        color: Color.fromARGB(255, 128, 149, 102),
+                      ),
                     ),
                   ),
                 ],
@@ -156,49 +302,79 @@ class _HomePageState extends State<HomePage> {
           ),
           Positioned(
             top: 60,
-            left: 20,
-            child: Visibility(
-              visible: _selectedIndex == 0,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    greeting,
-                    style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                        color: Color.fromARGB(255, 62, 78, 47)),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Ready to be productive?',
-                    style: TextStyle(
-                        fontSize: 20,
-                        color: Color.fromARGB(255, 128, 149, 102)),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            top: 65,
             right: 16,
             child: Visibility(
               visible: _selectedIndex == 0,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  width: 50,
-                  height: 50,
+                  width: 48,
+                  height: 48,
                   color: const Color.fromARGB(255, 62, 78, 47),
                   child: IconButton(
-                    icon: const Icon(Icons.assignment_outlined),
-                    iconSize: 30,
+                    icon: const Icon(Icons.logout),
+                    iconSize: 25,
                     color: Colors.white,
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const NotesPage()),
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: null,
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                const SizedBox(height: 10),
+                                Image.asset('assets/images/Emot.png'),
+                                const SizedBox(height: 20),
+                                const Text(
+                                  'Comeback Soon!',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                const Text(
+                                  'Are you sure you want to log out?',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      color: Color.fromARGB(255, 82, 81, 81)),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const WelcomeScreen()),
+                                  );
+                                },
+                                child: const Text(
+                                  'Yes',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      color: Color.fromARGB(255, 72, 101, 82)),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       );
                     },
                   ),
@@ -229,78 +405,16 @@ class _HomePageState extends State<HomePage> {
               text: 'Home',
             ),
             GButton(
-              icon: Icons.edit_calendar,
+              icon: Icons.calendar_today_rounded,
               text: 'Calendar',
             ),
             GButton(
-              icon: Icons.logout,
-              text: 'Logout',
+              icon: Icons.assignment_outlined,
+              text: 'Note',
             ),
           ],
         ),
       ),
-    );
-  }
-
-  void _showTimerDialog(BuildContext context) {
-    int hours = 0;
-    int minutes = 0;
-    int seconds = 0;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Set Timer"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextFormField(
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  hours = int.tryParse(value) ?? 0;
-                },
-                decoration: const InputDecoration(
-                  labelText: "Hours",
-                ),
-              ),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  minutes = int.tryParse(value) ?? 0;
-                },
-                decoration: const InputDecoration(
-                  labelText: "Minutes",
-                ),
-              ),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  seconds = int.tryParse(value) ?? 0;
-                },
-                decoration: const InputDecoration(
-                  labelText: "Seconds",
-                ),
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                _startTimer(hours * 3600 + minutes * 60 + seconds);
-                Navigator.of(context).pop();
-              },
-              child: const Text("Start"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Cancel"),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -323,59 +437,183 @@ class _HomePageState extends State<HomePage> {
   Widget _buildHomeScreen(List<Map<String, dynamic>> events, double progress,
       int hours, int minutes, int seconds) {
     String dateString = _getDateString(DateTime.now());
+    int focusTime = _getFocusTime();
+    int breakTime = _getBreakTime();
+    String formattedFocusTime = _formatDuration(Duration(minutes: focusTime));
 
     return Center(
-      child: SizedBox(
-        width: 300,
-        height: 300,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Lingkaran border
-            Positioned(
-              top: 1,
-              child: SizedBox(
-                width: 250,
-                height: 250,
-                child: CustomPaint(
-                  painter: CirclePainter(),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 300,
+            height: 260,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Lingkaran border
+                Positioned(
+                  top: 1,
+                  child: SizedBox(
+                    width: 250,
+                    height: 250,
+                    child: CustomPaint(
+                      painter: CirclePainter(),
+                    ),
+                  ),
                 ),
+                // Lingkaran progres
+                Positioned(
+                  top: 1,
+                  child: SizedBox(
+                    width: 250,
+                    height: 250,
+                    child: CustomPaint(
+                      painter: ProgressPainter(progress),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+                            style: GoogleFonts.lato(
+                              textStyle: const TextStyle(
+                                  fontSize: 40, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            dateString,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.lato(
+                              textStyle: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 30),
+          _buildSessionBox('Study Time',
+              'Break Time: $breakTime min\n Focus Time: $formattedFocusTime'),
+        ],
+      ),
+    );
+  }
+
+  String _formatDuration(Duration duration) {
+    int hours = duration.inHours;
+    int minutes = duration.inMinutes.remainder(60);
+    int seconds = duration.inSeconds.remainder(60);
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildSessionBox(String title, String details) {
+    return Container(
+      width: 350,
+      height: 170,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 206, 222, 189),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.lato(
+              textStyle: const TextStyle(
+                fontSize: 23,
+                fontWeight: FontWeight.w600,
+                color: Color.fromARGB(255, 62, 78, 47),
               ),
             ),
-            // Lingkaran progres
-            Positioned(
-              top: 1,
-              child: SizedBox(
-                width: 250,
-                height: 250,
-                child: CustomPaint(
-                  painter: ProgressPainter(progress),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-                        style: const TextStyle(
-                            fontSize: 40, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        dateString,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildSubSessionBox('Time Break', '${_getFocusTime()}', true),
+              _buildSubSessionBox('Time Focus', '${_getBreakTime()}', false),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubSessionBox(String title, String time, bool showMin) {
+    String formattedTime = title == 'Time Focus'
+        ? _formatDuration(Duration(minutes: int.parse(time)))
+        : time;
+    double fontSize = title == 'Time Focus' ? 21.0 : 26.0;
+    return Container(
+      width: 150,
+      height: 70,
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.lato(
+              textStyle: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Color.fromARGB(255, 62, 78, 47),
+              ),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                formattedTime,
+                style: GoogleFonts.lato(
+                  textStyle: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.bold,
+                    color: const Color.fromARGB(255, 62, 78, 47),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
+              if (showMin && title == 'Time Break')
+                Text(
+                  ' min',
+                  style: GoogleFonts.lato(
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      color: Color.fromARGB(255, 62, 78, 47),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
+  }
+
+  int _getFocusTime() {
+    int focusTime = (_events.length ~/ 2) * 25 + (_elapsedFocusTime ~/ 60);
+    return focusTime;
+  }
+
+  int _getBreakTime() {
+    int breakTime = (_events.length ~/ 2) * 5 + (_elapsedBreakTime ~/ 60);
+    return breakTime;
   }
 
   String _getDateString(DateTime date) {
@@ -440,11 +678,11 @@ class _HomePageState extends State<HomePage> {
   String _getGreeting() {
     var hour = DateTime.now().hour;
     if (hour < 12) {
-      return 'Good morning!';
+      return 'Good morning';
     } else if (hour < 17) {
-      return 'Good afternoon!';
+      return 'Good afternoon';
     } else {
-      return 'Good evening!';
+      return 'Good evening';
     }
   }
 
@@ -473,7 +711,7 @@ class CirclePainter extends CustomPainter {
 class ProgressPainter extends CustomPainter {
   final double progress;
 
-  ProgressPainter(this.progress); 
+  ProgressPainter(this.progress);
 
   @override
   void paint(Canvas canvas, Size size) {
