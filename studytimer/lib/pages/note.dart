@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -332,18 +333,14 @@ class NoteEditPageState extends State<NoteEditPage> {
           },
         ),
         actions: [
-          TextButton(
+          IconButton(
             onPressed: () {
               _saveNote();
             },
-            child: const Text(
-              'Save',
-              style: TextStyle(
-                color: Color.fromARGB(255, 128, 149, 102),
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+            icon: const Icon(
+              Icons.save_outlined,
+              color: Color.fromARGB(255, 62, 78, 47),
               ),
-            ),
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -395,31 +392,42 @@ class NoteEditPageState extends State<NoteEditPage> {
                   hintStyle: TextStyle(
                     fontSize: 32.0,
                   )),
-              style: const TextStyle(
+            style: GoogleFonts.lato(
+              textStyle: const TextStyle(
                   fontSize: 32.0,
                   fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 62, 78, 47)),
-            ),
+                  color: Color.fromARGB(255, 62, 78, 47),
+                  ),
+                ),
+              ),
             const SizedBox(height: 2.0),
             Text(
-              DateFormat('EEE dd MMM, HH:mm').format(DateTime.now()),
-              style: const TextStyle(
+              DateFormat('EEE dd MMM | HH:mm').format(DateTime.now()),
+              style: GoogleFonts.lato(
+                textStyle: const TextStyle(
                 fontSize: 16.0,
                 fontWeight: FontWeight.w600,
                 color: Color.fromARGB(255, 128, 149, 102),
               ),
             ),
-            const SizedBox(height: 12.0),
-            image != null
-                ? SizedBox(
-                    height: MediaQuery.of(context).size.width *
-                        getImageWidthFactor(),
-                    width: MediaQuery.of(context).size.width *
-                        getImageWidthFactor(),
-                    child: Image.file(
-                      image!,
-                      fit: BoxFit.cover,
-                    ))
+          ),
+          const SizedBox(height: 12.0),
+          image != null
+                ? GestureDetector(
+                    onTap: () {
+                      _showDeleteImageDialog();
+                    },
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.width *
+                          getImageWidthFactor(),
+                      width: MediaQuery.of(context).size.width *
+                          getImageWidthFactor(),
+                      child: Image.file(
+                        image!,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  )
                 : Container(),
             const SizedBox(height: 12.0),
             Expanded(
@@ -433,13 +441,15 @@ class NoteEditPageState extends State<NoteEditPage> {
                 child: TextField(
                   controller: _textController,
                   maxLines: null,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Add your text here',
                     border: InputBorder.none,
-                    hintStyle: TextStyle(
+                    hintStyle: GoogleFonts.lato(
+                    textStyle: const TextStyle(
                       fontSize: 16.0,
                       fontWeight: FontWeight.w500,
                       color: Color.fromARGB(255, 119, 119, 119),
+                    ),
                     ),
                     alignLabelWithHint: true,
                   ),
@@ -493,7 +503,7 @@ class NoteEditPageState extends State<NoteEditPage> {
 
     if (title.isNotEmpty || text.isNotEmpty || image != null) {
       if (image != null) {
-        Share.shareFiles([image!.path], text: '$title\n$text');
+        
       } else {
         Share.share(text);
       }
@@ -516,6 +526,38 @@ class NoteEditPageState extends State<NoteEditPage> {
         },
       );
     }
+  }
+ void _showDeleteImageDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Image'),
+          content: const Text('Are you sure you want to delete this image?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteImage();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteImage() {
+    setState(() {
+      image = null;
+    });
   }
 }
 
@@ -572,18 +614,14 @@ class NoteDetailPageState extends State<NoteDetailPage> {
           },
         ),
         actions: [
-          TextButton(
+          IconButton(
             onPressed: () {
               _saveNote();
             },
-            child: const Text(
-              'Save',
-              style: TextStyle(
-                color: Color.fromARGB(255, 128, 149, 102),
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+            icon: const Icon(
+              Icons.save_outlined,
+              color: Color.fromARGB(255, 62, 78, 47),
               ),
-            ),
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -631,30 +669,40 @@ class NoteDetailPageState extends State<NoteDetailPage> {
                   hintStyle: TextStyle(
                     fontSize: 32.0,
                   )),
-              style: const TextStyle(
+              style: GoogleFonts.lato(
+              textStyle: const TextStyle(
                   fontSize: 32.0,
                   fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 62, 78, 47)),
-            ),
+                  color: Color.fromARGB(255, 62, 78, 47),
+                  ),
+                ),
+              ),
             const SizedBox(height: 2.0),
             Text(
-              DateFormat('EEE dd MMM, HH:mm').format(DateTime.now()),
-              style: const TextStyle(
+              DateFormat('EEE dd MMM | HH:mm').format(DateTime.now()),
+              style: GoogleFonts.lato(
+              textStyle: const TextStyle(
                 fontSize: 16.0,
                 fontWeight: FontWeight.w600,
                 color: Color.fromARGB(255, 128, 149, 102),
               ),
             ),
+          ),
             const SizedBox(height: 12.0),
-            image != null
-                ? SizedBox(
-                    height: MediaQuery.of(context).size.width *
-                        getImageWidthFactor(),
-                    width: MediaQuery.of(context).size.width *
-                        getImageWidthFactor(),
-                    child: Image.file(
-                      image!,
-                      fit: BoxFit.cover,
+          image != null
+                ? GestureDetector(
+                    onTap: () {
+                      _showDeleteImageDialog();
+                    },
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.width *
+                          getImageWidthFactor(),
+                      width: MediaQuery.of(context).size.width *
+                          getImageWidthFactor(),
+                      child: Image.file(
+                        image!,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   )
                 : Container(),
@@ -670,13 +718,15 @@ class NoteDetailPageState extends State<NoteDetailPage> {
                 child: TextField(
                   controller: _textController,
                   maxLines: null,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Add your text here',
                     border: InputBorder.none,
-                    hintStyle: TextStyle(
+                    hintStyle:GoogleFonts.lato(
+                    textStyle: const TextStyle(
                       fontSize: 16.0,
                       fontWeight: FontWeight.w500,
                       color: Color.fromARGB(255, 119, 119, 119),
+                    ),
                     ),
                     alignLabelWithHint: true,
                   ),
@@ -692,6 +742,10 @@ class NoteDetailPageState extends State<NoteDetailPage> {
   void _saveNote() {
     final title = _titleController.text;
     final text = _textController.text;
+    
+    if (image == null) {
+    widget.note.image = null;
+  }
     if (title.isNotEmpty) {
       final updatedNote = widget.note.copyWith(
         title: title,
@@ -752,7 +806,40 @@ class NoteDetailPageState extends State<NoteDetailPage> {
       );
     }
   }
+  void _showDeleteImageDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Image'),
+          content: const Text('Are you sure you want to delete this image?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteImage();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteImage() {
+    setState(() {
+      image = null;
+    });
+  }
 }
+
 
 extension CopyWithExtension on Note {
   Note copyWith({
